@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createPresence } from './presence.js';
 
 // Native desktop messages, not browser notifications. Never use a shell with
 // model-authored text. Escape markup supported by the freedesktop protocol.
@@ -73,8 +74,36 @@ export function registerNotifications(ctx, sender) {
   }, { prepend: true });
 }
 
+export function registerPresence(ctx, presence) {
+  ctx.inject(['connection'], (scope) => {
+    scope.effect(() => scope.connection.fetch.register({
+      path: '/api/native-notifications/presence',
+      methods: ['POST'], requestBody: 'buffered',
+      async fetch(request) {
+        // Defense in depth: presence is writable only by an admitted DSH client.
+        const rejection = scope.connection.requestRejection(request);
+        if (rejection) return new Response(null, { status: rejection });
+        const text = await request.text();
+        if (text.length > 1024) return new Response(null, { status: 413 });
+        try {
+          if (!presence.update(JSON.parse(text))) return new Response(null, { status: 400 });
+        } catch {
+          return new Response(null, { status: 400 });
+        }
+        return new Response(null, { status: 204 });
+      },
+    }));
+  });
+}
+
+export function foregroundAwareSender(sender, presence) {
+  return { send(notification) { if (!presence.isActive()) sender.send(notification); } };
+}
+
 export function apply(ctx) {
   const sender = createDesktopSender();
+  const presence = createPresence();
   ctx.effect(() => () => sender.dispose());
-  registerNotifications(ctx, sender);
+  registerPresence(ctx, presence);
+  registerNotifications(ctx, foregroundAwareSender(sender, presence));
 }

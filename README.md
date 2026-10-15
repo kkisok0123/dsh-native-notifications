@@ -1,6 +1,6 @@
 # DSH Native Notifications
 
-A small host-side plugin for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai) that sends native Linux desktop notifications when an agent finishes responding or needs your attention.
+A small Host + Web Client plugin for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai) that sends native Linux desktop notifications when an agent finishes responding or needs your attention.
 
 Unlike an in-page popup or browser notification, alerts are delivered through the operating system using `notify-send`. No browser notification permission is required, and notifications can work with the DSH tab unfocused or closed, as long as the DSH host is still running.
 
@@ -9,6 +9,8 @@ Unlike an in-page popup or browser notification, alerts are delivered through th
 - **Response finished:** normal-priority notification after a successful top-level `turn/end`.
 - **Needs your input:** critical-priority notification containing the agent's structured question.
 - **Approval needed:** critical-priority notification for an approval request.
+- **Quiet while using DSH:** all three alerts are suppressed when any DSH tab is visible and focused. Switching tabs/apps or closing the page restores alerts. Suppressed alerts are not queued for later.
+- Handles multiple tabs and expires stale foreground reports after 15 seconds if a page crashes or loses connectivity.
 - Does not treat cancelled, interrupted, blocked, or failed turns as successful completions.
 - Suppresses completion notifications from subagent sessions.
 - Does not replay old notifications when opening conversation history.
@@ -45,6 +47,8 @@ In DSH, ask the agent to install the cloned folder as a bundle. The plugin-manag
   "target": "/absolute/path/to/dsh-native-notifications"
 }
 ```
+
+Refresh the DSH page once after installation/update to load the focus detector. Without the Client half loaded, the Host continues sending notifications as before.
 
 The bundle is named `@local/dsh-native-notifications`; its plugin row is `local-native-notifications`. Installation enables it in the current profile and persists across restarts. You can disable or remove the bundle through DSH's plugin manager.
 
