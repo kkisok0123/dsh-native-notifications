@@ -1,0 +1,4 @@
+- insert:
+    - id: local-native-notifications
+      name: '@local/dsh-native-notifications'
+      config: {}

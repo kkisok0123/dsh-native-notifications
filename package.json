@@ -1,0 +1,11 @@
+{
+  "name": "@local/dsh-native-notifications",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Native GNOME desktop alerts when DSH finishes a response or needs input.",
+  "exports": { ".": "./index.js" },
+  "files": ["index.js", "cordis.patch.yml"],
+  "scripts": { "test": "node --test test.mjs" },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}
